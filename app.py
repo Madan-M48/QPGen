@@ -34,7 +34,7 @@ def serve_html():
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'Mandy3330',
+    'password': '  ',#add password and database name
     'database': 'QPGen'
 }
 
