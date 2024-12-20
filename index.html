@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siddaganga Institute of Technology</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        header {
+            background-color: #004d99;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+        main {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        form, .controls {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input, select, button, textarea {
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        button {
+            background-color: #004d99;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003366;
+        }
+        .actions button {
+            margin-right: 1rem;
+        }
+        textarea {
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Siddaganga Institute of Technology</h1>
+        <!---<h3>QPGen</h3> --->
+    </header>
+    <main>
+        <form id="questionForm">
+            <label for="subjectCode">Subject Code:</label>
+            <input type="text" id="subjectCode" name="subjectCode" placeholder="Enter Subject Code" required>
+
+            <label for="questionType">Question Type:</label>
+            <select id="questionType" name="questionType" required>
+                <option value="">Select Question Type</option>
+                <option value="Descriptive">Descriptive</option>
+                <option value="Singlesentence">Singlesentence</option>
+                <option value="MCQ">MCQ</option>
+            </select>
+
+            <label for="numModules">Number of Modules (Total 5):</label>
+            <select id="numModules" name="numModules" required>
+                <option value="">Select Number of Modules</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+            <label for="difficultyLevel">Difficulty Level:</label>
+            <select id="difficultyLevel" name="difficultyLevel" required>
+                <option value="">Select Difficulty Level</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+
+            <button type="submit">Generate Questions</button>
+        </form>
+
+        <div id="generatedQuestions" style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 4px; display: none;">
+            <h2>Generated Questions:</h2>
+            <textarea id="questions" rows="10"  style="width:90%; height:px ;"></textarea>
+            <div class="actions">
+                <button id="regenerateBtn">Regenerate Questions</button>
+                <button id="downloadBtn">Download as PDF</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('questionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const payload = {
+                subjectCode: document.getElementById('subjectCode').value,
+                questionType: document.getElementById('questionType').value,
+                numModules: document.getElementById('numModules').value,
+                difficultyLevel: document.getElementById('difficultyLevel').value
+            };
+
+            fetch('http://localhost:5000/generate_questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+})
+.then(response => {
+    // Log the full response for debugging
+    console.log('Full Response:', response);
+    
+    // Check if response is ok
+    if (!response.ok) {
+        // Try to parse error details
+        return response.json().then(errorData => {
+            console.error('Detailed Error:', errorData);
+            throw new Error(errorData.error || 'Unknown server error');
+        });
+    }
+    return response.json();
+})
+.then(data => {
+    if (data.questions) {
+        document.getElementById('questions').value = data.questions.join('\n');
+        document.getElementById('generatedQuestions').style.display = 'block';
+    } else {
+        alert('Failed to generate questions: ' + (data.error || 'Unknown reason'));
+    }
+})
+.catch(error => {
+    console.error('Fetch Error:', error);
+    alert('An error occurred: ' + error.message);
+});
+
+
+
+
+
+        });
+
+        document.getElementById('regenerateBtn').addEventListener('click', function() {
+            document.getElementById('questionForm').dispatchEvent(new Event('submit'));
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const questionsText = document.getElementById('questions').value;
+            const blob = new Blob([questionsText], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'QuestionPaper.pdf';
+            link.click();
+        });
+    </script>
+</body>
+</html>
